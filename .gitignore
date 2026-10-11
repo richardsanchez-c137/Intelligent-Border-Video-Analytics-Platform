@@ -1,0 +1,90 @@
+# ==========================================================
+# IBVAP: local evidence, privacy-sensitive data, and outputs
+# ==========================================================
+
+# All runtime logs and captured evidence (including photos/videos)
+/logs/
+**/logs/
+**/evidence/
+**/evidence/**
+
+# Training images, crops, raw capture folders, generated datasets
+/datasets/
+**/datasets/
+**/raw/
+**/raw/**
+
+# Local video recordings and exports
+/videos/
+**/videos/
+
+# Runtime IPC/state files (frames, telemetry, commands, flags)
+/runtime/
+**/runtime/
+
+# Training runs and local pretrained/checkpoint weights
+/runs/
+/weights/
+**/runs/
+**/weights/
+*.pt
+*.pth
+*.ckpt
+
+# Per-machine saved restricted zone; do not publish real site geometry
+/config/restricted_zone.txt
+
+# Python environments and caches
+.venv/
+.venv-*/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# JavaScript dependencies/build outputs
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+
+# Compiled binaries and native build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# Local logs and incident exports regardless of location
+*.log
+*.csv
+
+# Local machine / editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Secrets and local environment configuration
+.env
+.env.*
+!.env.example
+
+# Archive / temporary files that commonly contain local data
+*.zip
+*.7z
+*.rar
+*.tmp
+*.bak
+*.old
+*~

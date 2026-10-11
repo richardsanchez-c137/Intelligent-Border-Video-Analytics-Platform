@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBVAP — Intelligent Border Video Analytics Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Main Navigation & Status Header -->
+    <header class="app-header">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <div class="radar-icon"></div>
+                <div class="brand-title">
+                    IBVAP
+                    <span class="title-sub">Border Video Analytics Console</span>
+                </div>
+            </div>
+            <div class="mode-badge" id="appModeBadge" title="Current backend operational mode">
+                DEMO MODE — SIMULATED
+            </div>
+        </div>
+
+        <!-- Real-time Status Badges -->
+        <div class="header-status-group">
+            <!-- Camera Status Indicator -->
+            <div class="status-badge camera-on" id="cameraStatusBadge" title="Camera connection state">
+                <span class="indicator-dot"></span>
+                <span id="cameraStatusText">CAMERA: ON</span>
+            </div>
+
+            <!-- Alarm Status Indicator -->
+            <div class="status-badge alarm-normal" id="alarmStatusBadge" title="Audible & visual alarm state">
+                <span class="indicator-dot"></span>
+                <span id="alarmStatusText">ALARM: NORMAL</span>
+            </div>
+
+            <!-- System Clock -->
+            <div class="system-clock" id="systemClock">--:--:--</div>
+
+            <!-- View Switcher Tabs -->
+            <nav class="nav-tabs" aria-label="Main Navigation">
+                <button class="nav-tab-btn active" id="tabBtnMonitor" data-target="tabMonitor">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="14" rx="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    Live Monitor
+                </button>
+                <button class="nav-tab-btn" id="tabBtnHistory" data-target="tabHistory">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    History Logs
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="app-main">
+
+        <!-- ===================================================================
+             Tab 1: Live Monitor & Camera Interface
+             =================================================================== -->
+        <section class="tab-pane active" id="tabMonitor">
+            <div class="monitor-grid">
+                
+                <!-- Main Camera Screen Card -->
+                <div class="camera-card">
+                    <div class="camera-card-header">
+                        <div class="camera-title-group">
+                            <span class="camera-title">CAM-01 [BORDER PERIMETER NORTH]</span>
+                            <span class="camera-feed-meta" id="feedMetaResolution">1280x800 @ 30fps</span>
+                        </div>
+                        <div class="controls-group">
+                            <span class="camera-feed-meta" id="yoloModelBadge">YOLO26s ONNX | Helmet Verifier v3</span>
+                        </div>
+                    </div>
+
+                    <!-- Camera Viewport & Overlays -->
+                    <div class="camera-viewport-container" id="cameraViewportContainer">
+                        <!-- Responsive Canvas Feed -->
+                        <canvas class="camera-canvas" id="cameraCanvas" width="1280" height="800"></canvas>
+
+                        <!-- Standby Screen (Shown when camera is OFF or DISCONNECTED) -->
+                        <div class="camera-standby-placeholder" id="cameraStandbyPlaceholder">
+                            <div class="camera-standby-icon">📷</div>
+                            <div style="font-weight: 700; font-size: 14px;" id="standbyHeading">CAMERA FEED INACTIVE</div>
+                            <div style="font-size: 12px;" id="standbySubtext">Press "CAMERA ON" below to start surveillance</div>
+                        </div>
+
+                        <!-- Top HUD Telemetry & Status Layer -->
+                        <div class="camera-overlay-hud">
+                            <div class="hud-top-bar">
+                                <div class="hud-telemetry" id="hudTelemetry">
+                                    <div class="hud-telemetry-row">
+                                        <span>FPS: <span class="hud-val-accent" id="telemetryFps">29.4</span></span>
+                                        <span>YOLO: <span class="hud-val-accent" id="telemetryYoloMs">14.2 ms</span></span>
+                                        <span>Verifier: <span class="hud-val-accent" id="telemetryVerifierMs">3.8 ms</span></span>
+                                    </div>
+                                    <div class="hud-telemetry-row">
+                                        <span>Detections: <span class="hud-val-green" id="telemetryDetections">1</span></span>
+                                        <span>Intrusions: <span class="hud-val-red" id="telemetryIntrusions">0</span></span>
+                                        <span>Confidence: <span class="hud-val-accent">&ge; 0.50</span></span>
+                                    </div>
+                                </div>
+
+                                <div class="demo-watermark-pill" title="Demo Mode: Simulated border patrol scenario">
+                                    DEMO MODE — SIMULATED FEED
+                                </div>
+                            </div>
+
+                            <!-- Intrusion Warning Banner (Appears on zone breach) -->
+                            <div class="hud-alarm-banner" id="hudAlarmBanner">
+                                <span>⚠️ INTRUSION DETECTED IN RESTRICTED PERIMETER</span>
+                                <span style="font-size: 11px; opacity: 0.9;">(Press [M] or click SILENCE ALARM)</span>
+                            </div>
+
+                            <!-- Zone Editing Active Indicator Banner -->
+                            <div class="hud-zone-edit-banner" id="hudZoneEditBanner">
+                                <div>
+                                    <strong style="color: #ffffff;">ZONE EDIT MODE ACTIVE:</strong>
+                                    <span>Drag with mouse to create/reposition zone. Drag handles to resize.</span>
+                                </div>
+                                <div>
+                                    <span>Press <strong>[S]</strong> to Save &bull; Press <strong>[T]</strong> to Cancel</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Camera Control Bar -->
+                    <div class="camera-controls-bar">
+                        <!-- Left Group: Camera Toggle & Alarm Silence -->
+                        <div class="controls-group">
+                            <button class="btn btn-secondary" id="btnToggleCamera" title="Toggle camera capture (Starts/Stops feed)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 7l-7 5 7 5V7z"></path>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                                <span id="btnToggleCameraText">Turn Camera OFF</span>
+                            </button>
+
+                            <button class="btn btn-silence" id="btnSilenceAlarm" title="Silence active intrusion alarm (Shortcut: M)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                                </svg>
+                                <span>SILENCE ALARM</span>
+                                <span class="kbd-badge">M</span>
+                            </button>
+
+                            <button class="btn btn-secondary btn-icon-only" id="btnSoundToggle" title="Toggle audible alert sound synthesis">
+                                <span id="soundToggleIcon">🔊</span>
+                            </button>
+                        </div>
+
+                        <!-- Right Group: Restricted Zone Controls -->
+                        <div class="controls-group">
+                            <button class="btn btn-zone-edit" id="btnEditZone" title="Enter or exit zone editing mode (Shortcut: T)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                <span id="btnEditZoneText">Edit Zone</span>
+                                <span class="kbd-badge">T</span>
+                            </button>
+
+                            <button class="btn btn-zone-save" id="btnSaveZone" disabled title="Save modified restricted zone (Shortcut: S)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                <span>Save Zone</span>
+                                <span class="kbd-badge">S</span>
+                            </button>
+
+                            <button class="btn btn-secondary" id="btnResetDefaultZone" title="Reset zone to factory border perimeter coordinates">
+                                <span>Reset Default</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: Shortcuts & Live Telemetry -->
+                <aside class="sidebar-panel">
+                    
+                    <!-- Essential Keyboard Shortcuts Panel -->
+                    <div class="hud-box">
+                        <div class="hud-box-header">
+                            <span>Keyboard Shortcuts</span>
+                            <span style="font-size: 10px; color: var(--color-info);">Active</span>
+                        </div>
+                        <div class="hud-box-body">
+                            <ul class="shortcuts-list">
+                                <li class="shortcut-item">
+                                    <div>
+                                        <div class="shortcut-desc">Silence Alarm</div>
+                                        <div class="shortcut-detail">Immediately mutes active intrusion alarm</div>
+                                    </div>
+                                    <div class="shortcut-key-wrapper">
+                                        <kbd class="shortcut-key">M</kbd>
+                                    </div>
+                                </li>
+                                <li class="shortcut-item">
+                                    <div>
+                                        <div class="shortcut-desc">Edit Restricted Zone</div>
+                                        <div class="shortcut-detail">Enter/Exit interactive mouse editor</div>
+                                    </div>
+                                    <div class="shortcut-key-wrapper">
+                                        <kbd class="shortcut-key">T</kbd>
+                                    </div>
+                                </li>
+                                <li class="shortcut-item">
+                                    <div>
+                                        <div class="shortcut-desc">Save Restricted Zone</div>
+                                        <div class="shortcut-detail">Applies & persists active normalized zone</div>
+                                    </div>
+                                    <div class="shortcut-key-wrapper">
+                                        <kbd class="shortcut-key">S</kbd>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+                                Shortcuts are disabled when typing into search fields or inputs.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Zone Coordinates HUD -->
+                    <div class="hud-box">
+                        <div class="hud-box-header">
+                            <span>Restricted Zone Coordinates</span>
+                            <span id="zoneEditStatusText" style="font-size: 10px; color: var(--color-normal);">SAVED</span>
+                        </div>
+                        <div class="hud-box-body">
+                            <div class="zone-coords-display">
+                                <div class="zone-coord-item"><span>X1 (Left):</span> <span class="val" id="zoneValX1">0.600</span></div>
+                                <div class="zone-coord-item"><span>Y1 (Top):</span> <span class="val" id="zoneValY1">0.150</span></div>
+                                <div class="zone-coord-item"><span>X2 (Right):</span> <span class="val" id="zoneValX2">0.950</span></div>
+                                <div class="zone-coord-item"><span>Y2 (Bottom):</span> <span class="val" id="zoneValY2">0.850</span></div>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+                                Coordinates normalized [0.0 - 1.0] for resolution-independent border surveillance.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Alerts Stream / Ticker -->
+                    <div class="hud-box">
+                        <div class="hud-box-header">
+                            <span>Live Events Ticker</span>
+                            <span style="font-size: 10px; color: var(--text-muted);" id="tickerCount">12 recorded</span>
+                        </div>
+                        <div class="hud-box-body">
+                            <div class="ticker-stream" id="tickerStream">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                </aside>
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             Tab 2: History Logs & Incident Dossier
+             =================================================================== -->
+        <section class="tab-pane" id="tabHistory">
+            <div class="history-card">
+                
+                <!-- Filter & Search Toolbar -->
+                <div class="filter-toolbar">
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterSearch">Search</label>
+                        <input type="text" class="form-control form-control-search" id="filterSearch" placeholder="Incident ID, Notes, Track...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterEventType">Event Type</label>
+                        <select class="form-control" id="filterEventType">
+                            <option value="ALL">All Event Types</option>
+                            <option value="RESTRICTED_ZONE_INTRUSION">Restricted Zone Intrusion</option>
+                            <option value="HELMET_VERIFIER_ALERT">Helmet Verifier Alert</option>
+                            <option value="ALARM_SILENCED">Alarm Silenced</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterSeverity">Severity</label>
+                        <select class="form-control" id="filterSeverity">
+                            <option value="ALL">All Severities</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="WARNING">Warning</option>
+                            <option value="INFO">Info</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterCamera">Camera</label>
+                        <select class="form-control" id="filterCamera">
+                            <option value="ALL">All Cameras</option>
+                            <option value="CAM-01">CAM-01 (Sector North)</option>
+                            <option value="CAM-02">CAM-02 (Perimeter West)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <button class="btn btn-secondary" id="btnResetFilters" title="Clear all search filters">Reset</button>
+                        <button class="btn btn-secondary" id="btnExportCsv" title="Download incident records as CSV">Export CSV</button>
+                    </div>
+                </div>
+
+                <!-- Table Results -->
+                <div class="table-responsive">
+                    <table class="history-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="id">Incident ID &#x25B4;</th>
+                                <th data-sort="timestamp">Date &amp; Time</th>
+                                <th data-sort="camera">Camera</th>
+                                <th data-sort="eventType">Event Type</th>
+                                <th data-sort="severity">Severity</th>
+                                <th data-sort="intrusion">Zone Breach</th>
+                                <th data-sort="alarm">Alarm State</th>
+                                <th>Evidence</th>
+                                <th data-sort="status">Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Populated dynamically by app.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer -->
+                <div class="table-footer">
+                    <span id="historyResultsCount">Showing 12 incident records</span>
+                    <span style="font-family: var(--font-mono); font-size: 11px;">IBVAP Audit Trail &bull; Local Storage Backed</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================================================================
+         Incident Details / Evidence Modal
+         =================================================================== -->
+    <div class="modal-backdrop" id="incidentModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-title" id="modalIncidentId">INC-20261011-090938</span>
+                    <span class="badge-pill badge-critical" id="modalSeverityBadge">CRITICAL</span>
+                </div>
+                <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close Modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="dossier-grid">
+                    <!-- Left: Evidence Image Preview -->
+                    <div class="evidence-preview-wrapper">
+                        <img alt="Perimeter Intrusion Evidence Snapshot" class="evidence-image" id="modalEvidenceImg" hidden>
+                        <div class="evidence-placeholder" id="modalEvidencePlaceholder" role="status">
+                            <span class="evidence-placeholder-icon">▧</span>
+                            <strong>No evidence snapshot</strong>
+                            <span>This event has no saved image.</span>
+                        </div>
+                        <div class="evidence-caption">
+                            <span>SURVEILLANCE EVIDENCE CAPTURE</span>
+                            <span id="modalEvidenceTimestamp">2026-10-11 09:09:38</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Metadata & Acknowledgement -->
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div class="metadata-table">
+                            <div class="meta-row">
+                                <span class="meta-key">Camera:</span>
+                                <span class="meta-val" id="modalCameraId">CAM-01 (Sector North)</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Event Type:</span>
+                                <span class="meta-val" id="modalEventType">RESTRICTED_ZONE_INTRUSION</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Detected Object:</span>
+                                <span class="meta-val" id="modalObjectClass">Person</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Track ID / Confidence:</span>
+                                <span class="meta-val" id="modalTrackConfidence">Track #5 (76%)</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Restricted Zone Breach:</span>
+                                <span class="meta-val" id="modalZoneBreach" style="color: var(--color-intrusion);">YES (Active Overlap)</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Alarm Action:</span>
+                                <span class="meta-val" id="modalAlarmAction">Triggered &amp; Silenced</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-key">Session ID:</span>
+                                <span class="meta-val" id="modalSessionId" style="font-size: 10px;">SESSION_20261011_090904</span>
+                            </div>
+                        </div>
+
+                        <!-- Operator Acknowledgement Section -->
+                        <div class="ack-form-group">
+                            <label class="filter-label" for="modalStatusSelect">Operator Status &amp; Disposition</label>
+                            <select class="form-control" id="modalStatusSelect">
+                                <option value="Unacknowledged">Unacknowledged</option>
+                                <option value="Acknowledged">Acknowledged</option>
+                                <option value="Investigating">Investigating</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+
+                            <label class="filter-label" for="modalNotesInput" style="margin-top: 4px;">Investigation Notes</label>
+                            <textarea class="form-control" id="modalNotesInput" rows="2" placeholder="Enter notes or response actions..."></textarea>
+                            
+                            <button class="btn btn-primary" id="btnSaveAcknowledgement" style="align-self: flex-start; margin-top: 4px;">
+                                Update Disposition
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnDownloadEvidence">Download Evidence Image</button>
+                <button class="btn btn-secondary" id="modalCloseFooterBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="ibvap-api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
