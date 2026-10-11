@@ -1,4 +1,4 @@
-6r666r# IBVAP — Intelligent Border Video Analytics Platform
+# IBVAP — Intelligent Border Video Analytics Platform
 
 IBVAP is a prototype for AI-assisted perimeter monitoring. It combines person/object detection, a configurable restricted zone, audible intrusion alerting, and local incident/evidence records with a lightweight browser-based monitoring interface.
 
